@@ -36,7 +36,6 @@ namespace CustomEscape
                 _escapePosDict.Clear();
 
                 _pointsPointList = Points.GetPointList(CustomEscape.Singleton.Config.PointsFileName);
-                _pointsPointList.FixData();
 
                 Log.Debug(
                     "Raw points: " + _pointsPointList.RawPoints.Count + " " +
