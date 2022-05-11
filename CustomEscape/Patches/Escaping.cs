@@ -1,12 +1,17 @@
 namespace CustomEscape.Patches
 {
     using System.Linq;
+
     using Exiled.API.Enums;
     using Exiled.API.Features;
     using Exiled.Events.EventArgs;
+
     using GameCore;
+
     using HarmonyLib;
+
     using InventorySystem.Disarming;
+
     using Respawning;
 
     [HarmonyPatch(typeof(CharacterClassManager), nameof(CharacterClassManager.UserCode_CmdRegisterEscape))]
@@ -23,8 +28,8 @@ namespace CustomEscape.Patches
                 return false;
 
             var cuffed = false;
-            foreach (var entry in DisarmedPlayers.Entries.Where(entry =>
-                (int)entry.DisarmedPlayer == (int)__instance._hub.networkIdentity.netId))
+            foreach (DisarmedPlayers.DisarmedEntry entry in DisarmedPlayers.Entries.Where(entry =>
+                entry.DisarmedPlayer == __instance._hub.networkIdentity.netId))
             {
                 if (entry.Disarmer == 0U)
                 {
@@ -32,12 +37,12 @@ namespace CustomEscape.Patches
                     break;
                 }
 
-                if (ReferenceHub.TryGetHubNetID(entry.Disarmer, out var hub))
+                if (ReferenceHub.TryGetHubNetID(entry.Disarmer, out ReferenceHub hub))
                 {
-                    var characterClassManager = hub.characterClassManager;
-                    if (__instance.CurClass == RoleType.Scientist &&
+                    CharacterClassManager characterClassManager = hub.characterClassManager;
+                    if (__instance.Faction == Faction.FoundationStaff &&
                         characterClassManager.Faction == Faction.FoundationEnemy ||
-                        __instance.CurClass == RoleType.ClassD &&
+                        __instance.Faction == Faction.FoundationEnemy &&
                         characterClassManager.Faction == Faction.FoundationStaff)
                         cuffed = true;
                 }
@@ -47,7 +52,7 @@ namespace CustomEscape.Patches
                 }
             }
 
-            var singleton = RespawnTickets.Singleton;
+            RespawnTickets singleton = RespawnTickets.Singleton;
             switch (__instance.CurRole.team)
             {
                 case Team.RSC:
@@ -56,12 +61,14 @@ namespace CustomEscape.Patches
                         ++RoundSummary.EscapedClassD;
                         singleton.GrantTickets(SpawnableTeamType.ChaosInsurgency,
                             ConfigFile.ServerConfig.GetInt("respawn_tickets_ci_scientist_cuffed_count", 2));
+                        __instance.GetComponent<Escape>().TargetShowEscapeMessage(__instance.connectionToClient, isClassD: false, changeTeam: true);
                         break;
                     }
 
                     ++RoundSummary.EscapedScientists;
                     singleton.GrantTickets(SpawnableTeamType.NineTailedFox,
                         ConfigFile.ServerConfig.GetInt("respawn_tickets_mtf_scientist_count", 1));
+                    __instance.GetComponent<Escape>().TargetShowEscapeMessage(__instance.connectionToClient, isClassD: false, changeTeam: false);
                     break;
                 case Team.CDP:
                     if (cuffed)
@@ -69,12 +76,15 @@ namespace CustomEscape.Patches
                         ++RoundSummary.EscapedScientists;
                         singleton.GrantTickets(SpawnableTeamType.NineTailedFox,
                             ConfigFile.ServerConfig.GetInt("respawn_tickets_mtf_classd_cuffed_count", 1));
+                        __instance.GetComponent<Escape>().TargetShowEscapeMessage(__instance.connectionToClient, isClassD: true, changeTeam: true);
+
                         break;
                     }
 
                     ++RoundSummary.EscapedClassD;
                     singleton.GrantTickets(SpawnableTeamType.ChaosInsurgency,
                         ConfigFile.ServerConfig.GetInt("respawn_tickets_ci_classd_count", 1));
+                    __instance.GetComponent<Escape>().TargetShowEscapeMessage(__instance.connectionToClient, isClassD: true, changeTeam: false);
                     break;
             }
 

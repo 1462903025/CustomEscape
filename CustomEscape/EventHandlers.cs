@@ -2,13 +2,18 @@ namespace CustomEscape
 {
     using System.Collections.Generic;
     using System.Linq;
+
     using Exiled.API.Extensions;
     using Exiled.API.Features;
     using Exiled.Events.EventArgs;
+
+    using global::CustomEscape.Patches;
+
     using MEC;
-    using Patches;
+
     using Points;
     using Points.DataTypes;
+
     using UnityEngine;
 
     public static class EventHandlers
@@ -31,7 +36,6 @@ namespace CustomEscape
                 _escapePosDict.Clear();
 
                 _pointsPointList = Points.GetPointList(CustomEscape.Singleton.Config.PointsFileName);
-                _pointsPointList.FixData();
 
                 Log.Debug(
                     "Raw points: " + _pointsPointList.RawPoints.Count + " " +
@@ -49,7 +53,7 @@ namespace CustomEscape
 
                 foreach (var escapePoint in CustomEscape.Singleton.Config.EscapePoints)
                 {
-                    var fixedPoint = _pointsPointList.FixedPoints.FirstOrDefault(x => x.Id == escapePoint.Key);
+                    FixedPoint fixedPoint = _pointsPointList.FixedPoints.FirstOrDefault(x => x.Id == escapePoint.Key);
                     if (fixedPoint == null)
                     {
                         Log.Error("Unknown Id while trying to create escape point: " + escapePoint.Key);
@@ -98,7 +102,7 @@ namespace CustomEscape
         {
             if (!ev.Player.SessionVariables.TryGetValue(SessionVariable, out var objValue) ||
                 !(objValue is string sValue) ||
-                !CustomEscape.Singleton.Config.EscapePoints.TryGetValue(sValue, out var epc))
+                !CustomEscape.Singleton.Config.EscapePoints.TryGetValue(sValue, out EscapePointConfig epc))
             {
                 Log.Debug("the escape is not performed by a custom collider or we don't have a role to change to",
                     CustomEscape.Singleton.Config.Debug);
@@ -109,7 +113,7 @@ namespace CustomEscape
             Log.Debug($"got session variable and escape point config: '{sValue}'", CustomEscape.Singleton.Config.Debug);
 
             if (!epc.RoleConversions.TryGetValue(ev.Player.Role,
-                out var pcc))
+                out PrettyCuffedConfig pcc))
             {
                 ev.IsAllowed = false;
                 return;
@@ -118,7 +122,7 @@ namespace CustomEscape
             ev.Player.SessionVariables[SessionVariable] = null;
             Log.Debug($"set '{SessionVariable}' back to 'null'", CustomEscape.Singleton.Config.Debug);
 
-            var role = ev.Player.IsCuffed ? pcc.CuffedRole : pcc.UnCuffedRole;
+            RoleType role = ev.Player.IsCuffed ? pcc.CuffedRole : pcc.UnCuffedRole;
             ev.ClearInventory = ev.Player.IsCuffed ? pcc.CuffedClearInventory : pcc.UnCuffedClearInventory;
             Log.Debug($"changing role: '{ev.Player.Role}' to '{role}', cuffed: '{ev.Player.IsCuffed}'",
                 CustomEscape.Singleton.Config.Debug);
@@ -129,12 +133,6 @@ namespace CustomEscape
                 case RoleType.None:
                     ev.IsAllowed = false;
                     Log.Debug("role is None, so we're not allowing the escape", CustomEscape.Singleton.Config.Debug);
-                    break;
-                case RoleType.Spectator:
-                    Timing.CallDelayed(0.1f,
-                        () => ev.Player.Position = ev.Player.Role.GetRandomSpawnProperties().Item1);
-                    Log.Debug($"role is Spectator, so we're moving them out of the way: {ev.Player.Nickname}",
-                        CustomEscape.Singleton.Config.Debug);
                     break;
             }
         }

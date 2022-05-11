@@ -1,11 +1,16 @@
 ﻿namespace CustomEscape
 {
     using System;
+    using System.Reflection;
+
     using Exiled.API.Enums;
     using Exiled.API.Features;
     using Exiled.Events;
+
     using HarmonyLib;
+
     using Points;
+
     using Server = Exiled.Events.Handlers.Server;
 
     // ReSharper disable once ClassNeverInstantiated.Global
@@ -16,9 +21,8 @@
         public override string Author => "Remindme";
         public override string Name => "Custom Escapes";
         public override string Prefix => "bEscape";
-        public override PluginPriority Priority => PluginPriority.Higher;
-        public override Version Version { get; } = new Version(3, 2, 0);
-        public override Version RequiredExiledVersion { get; } = new Version(3, 0, 0);
+        public override Version Version { get; } = new Version(3, 5, 0, 0);
+        public override Version RequiredExiledVersion { get; } = new Version(5, 0, 0);
 
         private Harmony Harmony { get; set; }
 
@@ -29,7 +33,7 @@
 
             try
             {
-                foreach (var method in Events.Instance.Harmony.GetPatchedMethods())
+                foreach (MethodBase method in Events.Instance.Harmony.GetPatchedMethods())
                     if (method.DeclaringType != null && method.Name == "UserCode_CmdRegisterEscape")
                         Events.DisabledPatchesHashSet.Add(method);
 
