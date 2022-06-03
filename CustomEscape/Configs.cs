@@ -42,11 +42,11 @@
             };
 
 
-        [Description("Points file. It contains all escape positions in the form of IDs and raw XYZ data")]
+        [Description("Points file.  它以ID和原始XYZ数据的形式包含所有撤离点位置")]
         public string PointsFileName { get; set; } = "EscapePoints";
 
         public bool Debug { get; set; } = false;
-        [Description("Enables Custom Escape")] public bool IsEnabled { get; set; } = true;
+        [Description("启用自定义撤离点")] public bool IsEnabled { get; set; } = true;
 
         public void TryCreateFile()
         {
@@ -66,13 +66,13 @@
 
     public class EscapePointConfig
     {
-        [Description("How big will the escape zone be")]
+        [Description("撤离点有多大")]
         public float EscapeRadius { get; set; } = 1000f;
 
         [Description(
-            "Self-explanatory. Wrong configs will lead to role changing to Scp173. " +
-            "You can pass None to not change role. " +
-            "Make sure you follow the example formatting or it *can* possibly break")]
+            "不言而喻。错误的配置将导致角色更改为Scp173。 " +
+            "您可以传递None以不更改角色。 " +
+            "确保遵循示例格式，否则可能会中断")]
         public Dictionary<RoleType, PrettyCuffedConfig> RoleConversions { get; set; } =
             new Dictionary<RoleType, PrettyCuffedConfig>
             {
@@ -94,12 +94,12 @@
     {
         public RoleType CuffedRole { get; set; } = RoleType.ChaosConscript;
 
-        [Description("Should the player lose their inventory while escaping")]
+        [Description("玩家在逃跑时失去库存")]
         public bool CuffedClearInventory { get; set; } = false;
 
         public RoleType UnCuffedRole { get; set; } = RoleType.NtfPrivate;
 
-        [Description("Should the player lose their inventory while escaping")]
+        [Description("玩家在逃跑时失去库存")]
         public bool UnCuffedClearInventory { get; set; } = false;
     }
 }
